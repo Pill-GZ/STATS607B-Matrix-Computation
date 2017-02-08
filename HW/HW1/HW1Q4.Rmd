@@ -1,0 +1,56 @@
+---
+title: "STATS607B HW1 Q4(b)"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
+---
+
+My computer runs on Intel Core i5-3317U CPU @ 1.70GHz Duo-core with 4 virtual cores. (Theoretical FLOPS is availble here
+[http://www.intel.com/content/dam/support/us/en/documents/processors/corei5/sb/core_i5-3300_m.pdf])
+
+It is of the Intel Ivy Bridge Microarchitecture which is capable of at least 4 DP FLOPs/cycle.
+
+An R session uses a single (virtual) core in the CPU, i.e., utilize ~0.85GHz x 4 DP FLOPs/cycle.
+
+[http://stackoverflow.com/questions/8389648/how-do-i-achieve-the-theoretical-maximum-of-4-flops-per-cycle].
+
+```{r}
+time.used <- c()
+FLOPs<- c()
+m.range <- seq(100,1200,100)
+for (m in m.range) {
+  X <- matrix(rnorm(m^2,100,2),m)
+  time.used[m/100] <- system.time(X%*%X)[3]
+  FLOPs[m/100] <- 2*m^3
+}
+```
+
+Average cycle rate is
+
+```{r}
+actual.rate <- FLOPs[length(m.range)]/4/time.used[length(m.range)]/10^9
+cat(actual.rate,"GHz")
+```
+
+Which is less than the maximum possible clock rate (~0.85GHz per thread).
+
+```{r fig.height=4}
+plot(m.range, time.used, type = 'l')
+lines(m.range, 2*m.range^3/0.85/4/10^9, col = 2, lty = 2)
+legend("topleft", legend = c("experiment","theoretical"),
+       col = c(1,2), lty = c(1,2))
+```
+
+Number of operations and time used scale linearly with dimenstion-cubed m^3.
+
+```{r fig.height=4}
+# plot(FLOPs, time.used, type = 'b')
+plot(m.range,(time.used)^(1/3), type = 'b', xlab = "dim m")
+```
+
+## Conclusion
+
+A single thread in the CPU is capable of 0.85GHz x 4 DP FLOPs/cycle, i.e., 3.4 GFLOPS.
+
+Actual average rate achieved in R is `r actual.rate`GHz x 4 DP FLOPs/cycle, i.e., `r actual.rate*4` GFLOPS.
